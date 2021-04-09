@@ -226,6 +226,8 @@ runs:
         for /l %%i in (1,1,5) do (set STATUS=0 & call mvn %MAVEN_OPTIONS% -pl .,%CI_DEPLOY_MODULE% && goto :done || set STATUS=!ERRORLEVEL! && timeout 60 > nul)
         exit /b !STATUS!
         :done
+        df -h
+        wmic pagefile list /format:list
         for /l %%i in (1,1,5) do (set STATUS=0 & call mvn %MAVEN_OPTIONS% -f %CI_DEPLOY_MODULE%/platform/%EXT2%/pom.xml && goto :done2 || set STATUS=!ERRORLEVEL! && timeout 60 > nul)
         exit /b !STATUS!
         :done2
