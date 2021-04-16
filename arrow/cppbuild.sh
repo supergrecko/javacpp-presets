@@ -36,7 +36,7 @@ tar --totals -xzf ../openssl-$OPENSSL_VERSION.tar.gz
 tar --totals -xf ../llvm-$LLVM_VERSION.src.tar.xz || tar --totals -xf ../llvm-$LLVM_VERSION.src.tar.xz
 cd apache-arrow-$ARROW_VERSION
 patch -Np1 < ../../../arrow.patch
-sedinplace 's/ARROW_LLVM_VERSIONS "10"/ARROW_LLVM_VERSIONS "11" "10"/g' cpp/CMakeLists.txt
+sedinplace 's/ARROW_LLVM_VERSIONS "10"/ARROW_LLVM_VERSIONS "11" "10" "12"/g' cpp/CMakeLists.txt
 cd ../llvm-$LLVM_VERSION.src
 sedinplace '/find_package(Git/d' cmake/modules/AddLLVM.cmake cmake/modules/VersionFromVCS.cmake
 mkdir -p build tools
