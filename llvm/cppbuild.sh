@@ -109,7 +109,7 @@ case $PLATFORM in
         cd $INSTALL_PATH/lib
         [ -f LLVM.lib ] || lib.exe /OUT:LLVM.lib LLVM*.lib Polly*.lib
         [ -f clang.lib ] || lib.exe /OUT:clang.lib clang*.lib
-        [ -f LTO.lib ] || cp $BUILD_ROOT/llvm-$LLVM_VERSION.src/build/lib/LTO.lib .
+        [ -f LTO.lib ] || cp $INSTALL_PATH/llvm-$LLVM_VERSION.src/build/lib/LTO.lib .
         ;;
     windows-x86_64)
         export CC="cl.exe"
@@ -126,7 +126,7 @@ case $PLATFORM in
         cd $INSTALL_PATH/lib
         [ -f LLVM.lib ] || lib.exe /OUT:LLVM.lib LLVM*.lib Polly*.lib
         [ -f clang.lib ] || lib.exe /OUT:clang.lib clang*.lib
-        [ -f LTO.lib ] || cp $BUILD_ROOT/llvm-$LLVM_VERSION.src/build/lib/LTO.lib .
+        [ -f LTO.lib ] || cp $INSTALL_PATH/llvm-$LLVM_VERSION.src/build/lib/LTO.lib .
         ;;
     *)
         echo "Error: Platform \"$PLATFORM\" is not supported"
@@ -134,4 +134,4 @@ case $PLATFORM in
         ;;
 esac
 
-cd $BUILD_ROOT
+cd $INSTALL_PATH
