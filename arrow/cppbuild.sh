@@ -24,32 +24,33 @@ download https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz openssl-
 download http://zlib.net/zlib-$ZLIB_VERSION.tar.gz zlib-$ZLIB_VERSION.tar.gz
 download https://github.com/google/protobuf/releases/download/v$PROTO_VERSION/protobuf-cpp-$PROTO_VERSION.tar.gz protobuf-$PROTO_VERSION.tar.gz
 download https://www.apache.org/dist/arrow/arrow-$ARROW_VERSION/apache-arrow-$ARROW_VERSION.tar.gz apache-arrow-$ARROW_VERSION.tar.gz
+INSTALL_PATH=`pwd`
+# Enter a custom build directory if necessary
+BUILD_DIR="${BUILD_DIR:-$(pwd)}"
+mkdir -p $BUILD_DIR
+cd $BUILD_DIR
 
 mkdir -p $PLATFORM
 cd $PLATFORM
-INSTALL_PATH=`pwd`
 echo "Decompressing archives... (ignore any symlink errors)"
-tar --totals -xzf ../apache-arrow-$ARROW_VERSION.tar.gz
-tar --totals -xzf ../protobuf-$PROTO_VERSION.tar.gz
-tar --totals -xzf ../zlib-$ZLIB_VERSION.tar.gz
-tar --totals -xzf ../openssl-$OPENSSL_VERSION.tar.gz
-tar --totals -xf ../llvm-$LLVM_VERSION.src.tar.xz || tar --totals -xf ../llvm-$LLVM_VERSION.src.tar.xz
+tar --totals -xzf $INSTALL_PATH/apache-arrow-$ARROW_VERSION.tar.gz
+tar --totals -xzf $INSTALL_PATH/protobuf-$PROTO_VERSION.tar.gz
+tar --totals -xzf $INSTALL_PATH/zlib-$ZLIB_VERSION.tar.gz
+tar --totals -xzf $INSTALL_PATH/openssl-$OPENSSL_VERSION.tar.gz
+tar --totals -xf $INSTALL_PATH/llvm-$LLVM_VERSION.src.tar.xz || tar --totals -xf ../llvm-$LLVM_VERSION.src.tar.xz
 cd apache-arrow-$ARROW_VERSION
-patch -Np1 < ../../../arrow.patch
+patch -Np1 < $INSTALL_PATH/../arrow.patch
 sedinplace 's/set(ARROW_LLVM_VERSIONS/set(ARROW_LLVM_VERSIONS "12"/g' cpp/CMakeLists.txt
 cd ../llvm-$LLVM_VERSION.src
 sedinplace '/find_package(Git/d' cmake/modules/AddLLVM.cmake cmake/modules/VersionFromVCS.cmake
 mkdir -p tools
 cd tools
-tar --totals -xf ../../../clang-$LLVM_VERSION.src.tar.xz || tar --totals -xf ../../../clang-$LLVM_VERSION.src.tar.xz
+tar --totals -xf $INSTALL_PATH/clang-$LLVM_VERSION.src.tar.xz || tar --totals -xf ../../../clang-$LLVM_VERSION.src.tar.xz
 rm -Rf clang
 mv clang-$LLVM_VERSION.src clang
 cd ..
-
-# Enter a custom build directory if necessary
-BUILD_DIR="${BUILD_DIR:-build}"
-mkdir -p $BUILD_DIR
-cd $BUILD_DIR
+mkdir -p build
+cd build
 
 COMPONENTS="-DARROW_COMPUTE=ON -DARROW_CSV=ON -DARROW_DATASET=ON -DARROW_FILESYSTEM=ON -DARROW_FLIGHT=ON -DARROW_GANDIVA=ON -DARROW_HDFS=ON -DARROW_JSON=ON -DARROW_ORC=ON -DARROW_PARQUET=ON -DARROW_PLASMA=ON -DARROW_DEPENDENCY_SOURCE=BUNDLED -DARROW_VERBOSE_THIRDPARTY_BUILD=ON -DARROW_USE_GLOG=ON -DARROW_WITH_BROTLI=ON -DARROW_WITH_BZ2=OFF -DARROW_WITH_LZ4=ON -DARROW_WITH_SNAPPY=ON -DARROW_WITH_ZLIB=ON -DARROW_WITH_ZSTD=OFF"
 

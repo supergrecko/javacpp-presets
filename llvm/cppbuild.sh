@@ -9,21 +9,22 @@ fi
 
 LLVM_VERSION=12.0.0
 download https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/llvm-project-$LLVM_VERSION.src.tar.xz llvm-project-$LLVM_VERSION.src.tar.xz
+INSTALL_PATH=`pwd`
+# Enter a custom build directory if necessary
+BUILD_DIR="${BUILD_DIR:-$(pwd)}"
+mkdir -p $BUILD_DIR
+cd $BUILD_DIR
 
 mkdir -p $PLATFORM
 cd $PLATFORM
-INSTALL_PATH=`pwd`
 echo "Decompressing archives... (ignore any symlink errors)"
-tar --totals -xf ../llvm-project-$LLVM_VERSION.src.tar.xz || true
+tar --totals -xf $INSTALL_PATH/llvm-project-$LLVM_VERSION.src.tar.xz || true
 cd llvm-project-$LLVM_VERSION.src
-patch -Np1 < ../../../llvm.patch
+patch -Np1 < $INSTALL_PATH/../llvm.patch
 sedinplace '/find_package(Git/d' llvm/cmake/modules/AddLLVM.cmake llvm/cmake/modules/VersionFromVCS.cmake
 sedinplace '/Generating libLLVM is not supported on MSVC/d' llvm/tools/llvm-shlib/CMakeLists.txt
-
-# Enter a custom build directory if necessary
-BUILD_DIR="${BUILD_DIR:-build}"
-mkdir -p $BUILD_DIR
-cd $BUILD_DIR
+mkdir -p build
+cd build
 
 PROJECTS="clang;lld;polly"
 
