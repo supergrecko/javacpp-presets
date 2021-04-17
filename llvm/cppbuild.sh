@@ -19,8 +19,11 @@ cd llvm-project-$LLVM_VERSION.src
 patch -Np1 < ../../../llvm.patch
 sedinplace '/find_package(Git/d' llvm/cmake/modules/AddLLVM.cmake llvm/cmake/modules/VersionFromVCS.cmake
 sedinplace '/Generating libLLVM is not supported on MSVC/d' llvm/tools/llvm-shlib/CMakeLists.txt
-mkdir -p build
-cd build
+
+# Enter a custom build directory if necessary
+BUILD_DIR="${BUILD_DIR:-build}"
+mkdir -p $BUILD_DIR
+cd $BUILD_DIR
 
 PROJECTS="clang;lld;polly"
 
