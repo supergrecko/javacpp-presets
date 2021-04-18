@@ -19,13 +19,19 @@ INSTALL_PATH=$(pwd)/$PLATFORM
 mkdir -p $BUILD_ROOT
 cd $BUILD_ROOT
 
+# If we build on a different disk, tar requires --force-local to not parse the : in the disk name as a hostname
+case $PLATFORM in
+  windows-*) export TAR_ARGS="--force-local" ;;
+  *)         export TAR_ARGS="" ;;
+esac
+
 LLVM_VERSION=12.0.0
 download https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/llvm-project-$LLVM_VERSION.src.tar.xz llvm-project-$LLVM_VERSION.src.tar.xz
 
 mkdir -p $PLATFORM
 cd $PLATFORM
 echo "Decompressing archives... (ignore any symlink errors)"
-tar --totals --force-local -xf $BUILD_ROOT/llvm-project-$LLVM_VERSION.src.tar.xz || true
+tar --totals $TAR_ARGS -xf $BUILD_ROOT/llvm-project-$LLVM_VERSION.src.tar.xz || true
 cd llvm-project-$LLVM_VERSION.src
 patch -Np1 < $PRESET_SOURCES_DIR/llvm.patch
 sedinplace '/find_package(Git/d' llvm/cmake/modules/AddLLVM.cmake llvm/cmake/modules/VersionFromVCS.cmake
