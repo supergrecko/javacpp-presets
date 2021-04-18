@@ -25,7 +25,7 @@ download https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VE
 mkdir -p $PLATFORM
 cd $PLATFORM
 echo "Decompressing archives... (ignore any symlink errors)"
-tar --totals -xf $BUILD_ROOT/llvm-project-$LLVM_VERSION.src.tar.xz || true
+tar --totals --force-local -xf $BUILD_ROOT/llvm-project-$LLVM_VERSION.src.tar.xz || true
 cd llvm-project-$LLVM_VERSION.src
 patch -Np1 < $PRESET_SOURCES_DIR/llvm.patch
 sedinplace '/find_package(Git/d' llvm/cmake/modules/AddLLVM.cmake llvm/cmake/modules/VersionFromVCS.cmake
