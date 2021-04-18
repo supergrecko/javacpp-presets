@@ -105,7 +105,7 @@ case $PLATFORM in
         export CXX="cl.exe"
         $CMAKE -G "Ninja" -DLLVM_BUILD_LLVM_C_DYLIB=OFF -DCMAKE_EXE_LINKER_FLAGS="/FORCE:MULTIPLE" -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON -DLLVM_USE_CRT_RELEASE=MD -DCMAKE_INSTALL_PREFIX=../.. -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=all -DLLVM_ENABLE_DIA_SDK=OFF -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$(where python.exe | head -1)" -DLLVM_POLLY_LINK_INTO_TOOLS=ON -DLLVM_ENABLE_PROJECTS="$PROJECTS" ../llvm
         ninja -j $MAKEJ
-        cd lib/
+        cd $INSTALL_PATH/lib/
         [ -f LLVM.lib ] || lib.exe /OUT:LLVM.lib LLVM*.lib Polly*.lib
         [ -f clang.lib ] || lib.exe /OUT:clang.lib clang*.lib
         cd ..
@@ -122,7 +122,7 @@ case $PLATFORM in
         export CXX="cl.exe"
         $CMAKE -G "Ninja" -DLLVM_BUILD_LLVM_C_DYLIB=OFF -DCMAKE_EXE_LINKER_FLAGS="/FORCE:MULTIPLE" -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON -DLLVM_USE_CRT_RELEASE=MD -DCMAKE_INSTALL_PREFIX=../.. -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=all -DLLVM_ENABLE_DIA_SDK=OFF -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$(where python.exe | head -1)" -DLLVM_POLLY_LINK_INTO_TOOLS=ON -DLLVM_ENABLE_PROJECTS="$PROJECTS" ../llvm
         ninja -j $MAKEJ
-        cd lib/
+        cd $INSTALL_PATH/lib/
         [ -f LLVM.lib ] || lib.exe /OUT:LLVM.lib LLVM*.lib Polly*.lib
         [ -f clang.lib ] || lib.exe /OUT:clang.lib clang*.lib
         cd ..
