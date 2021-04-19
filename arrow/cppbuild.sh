@@ -12,6 +12,18 @@ if [[ $PLATFORM == windows* ]]; then
     export PYTHON_BIN_PATH=$(which python.exe)
 fi
 
+# To allow the building to happen on another system drive than we're currently
+# on, we use these variables to address absolute paths to files and directories.
+
+# BUILD_ROOT is the directory where the building happens
+BUILD_ROOT="${BUILD_DIR:-$(pwd)}"
+# PRESET_SOURCES_DIR is the directory where the javacpp-presets repository was cloned into
+PRESET_SOURCES_DIR=$(pwd)/../
+# INSTALL_PATH is the directory where the libraries, headers and executables are stored. /cppbuild/$PLATFORM
+INSTALL_PATH=$(pwd)/$PLATFORM
+mkdir -p $BUILD_ROOT
+cd $BUILD_ROOT
+
 LLVM_VERSION=12.0.0
 OPENSSL_VERSION=1.1.1k
 ZLIB_VERSION=1.2.11
@@ -24,20 +36,15 @@ download https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz openssl-
 download http://zlib.net/zlib-$ZLIB_VERSION.tar.gz zlib-$ZLIB_VERSION.tar.gz
 download https://github.com/google/protobuf/releases/download/v$PROTO_VERSION/protobuf-cpp-$PROTO_VERSION.tar.gz protobuf-$PROTO_VERSION.tar.gz
 download https://www.apache.org/dist/arrow/arrow-$ARROW_VERSION/apache-arrow-$ARROW_VERSION.tar.gz apache-arrow-$ARROW_VERSION.tar.gz
-INSTALL_PATH=`pwd`
-# Enter a custom build directory if necessary
-BUILD_DIR="${BUILD_DIR:-$(pwd)}"
-mkdir -p $BUILD_DIR
-cd $BUILD_DIR
 
 mkdir -p $PLATFORM
 cd $PLATFORM
 echo "Decompressing archives... (ignore any symlink errors)"
-tar --totals -xzf $INSTALL_PATH/apache-arrow-$ARROW_VERSION.tar.gz
-tar --totals -xzf $INSTALL_PATH/protobuf-$PROTO_VERSION.tar.gz
-tar --totals -xzf $INSTALL_PATH/zlib-$ZLIB_VERSION.tar.gz
-tar --totals -xzf $INSTALL_PATH/openssl-$OPENSSL_VERSION.tar.gz
-tar --totals -xf $INSTALL_PATH/llvm-$LLVM_VERSION.src.tar.xz || tar --totals -xf ../llvm-$LLVM_VERSION.src.tar.xz
+tar --totals -xzf $BUILD_ROOT/apache-arrow-$ARROW_VERSION.tar.gz
+tar --totals -xzf $BUILD_ROOT/protobuf-$PROTO_VERSION.tar.gz
+tar --totals -xzf $BUILD_ROOT/zlib-$ZLIB_VERSION.tar.gz
+tar --totals -xzf $BUILD_ROOT/openssl-$OPENSSL_VERSION.tar.gz
+tar --totals -xf $BUILD_ROOT/llvm-$LLVM_VERSION.src.tar.xz || tar --totals -xf ../llvm-$LLVM_VERSION.src.tar.xz
 cd apache-arrow-$ARROW_VERSION
 patch -Np1 < $INSTALL_PATH/../arrow.patch
 sedinplace 's/set(ARROW_LLVM_VERSIONS/set(ARROW_LLVM_VERSIONS "12"/g' cpp/CMakeLists.txt
@@ -68,11 +75,11 @@ case $PLATFORM in
         "$CMAKE" -DCMAKE_EXE_LINKER_FLAGS="-ldl" -DCMAKE_SHARED_LINKER_FLAGS="-ldl" -DLLVM_CCACHE_BUILD=ON -DCMAKE_CROSSCOMPILING=True -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DLLVM_TABLEGEN="$TBLGEN/bin/llvm-tblgen" -DCLANG_TABLEGEN="$TBLGEN/bin/clang-tblgen" -DCMAKE_C_FLAGS="-march=armv6 -mfpu=vfp -mfloat-abi=hard" -DCMAKE_CXX_FLAGS="-march=armv6 -mfpu=vfp -mfloat-abi=hard" -DCMAKE_BUILD_TYPE=Release -DLLVM_HOST_TRIPLE=arm-unknown-linux-gnueabihf -DLLVM_DEFAULT_TARGET_TRIPLE=arm-unknown-linux-gnueabihf -DLLVM_TARGET_ARCH=ARM -DLLVM_TARGETS_TO_BUILD=ARM -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$PYTHON_BIN_PATH" ..
         make -j $MAKEJ
         make install
-        cd ../../openssl-$OPENSSL_VERSION
+        cd $INSTALL_PATH/openssl-$OPENSSL_VERSION
         ./Configure linux-generic32 -march=armv6 -mfpu=vfp -mfloat-abi=hard -fPIC no-shared --prefix=$INSTALL_PATH --cross-compile-prefix=arm-linux-gnueabihf-
         make -s -j $MAKEJ
         make install_sw
-        cd ../apache-arrow-$ARROW_VERSION/cpp
+        cd $INSTALL_PATH/apache-arrow-$ARROW_VERSION/cpp
         "$CMAKE" -DCMAKE_C_FLAGS="-march=armv6 -mfpu=vfp -mfloat-abi=hard" -DCMAKE_CXX_FLAGS="-march=armv6 -mfpu=vfp -mfloat-abi=hard" -DLLVM_ROOT="$INSTALL_PATH" -DOPENSSL_ROOT_DIR="$INSTALL_PATH" $COMPONENTS -DARROW_RPATH_ORIGIN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_INSTALL_LIBDIR="lib" -DARROW_BUILD_UTILITIES=OFF -DPython3_EXECUTABLE="$PYTHON_BIN_PATH" .
         make -j $MAKEJ
         make install/strip
@@ -90,11 +97,11 @@ case $PLATFORM in
         "$CMAKE" -DLLVM_CCACHE_BUILD=ON -DCMAKE_CROSSCOMPILING=True -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DLLVM_TABLEGEN="$TBLGEN/bin/llvm-tblgen" -DCLANG_TABLEGEN="$TBLGEN/bin/clang-tblgen" -DCMAKE_BUILD_TYPE=Release -DLLVM_HOST_TRIPLE=aarch64-unknown-linux-gnu -DLLVM_DEFAULT_TARGET_TRIPLE=aarch64-unknown-linux-gnu -DLLVM_TARGET_ARCH=AArch64 -DLLVM_TARGETS_TO_BUILD=AArch64 -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$PYTHON_BIN_PATH" ..
         make -j $MAKEJ
         make install
-        cd ../../openssl-$OPENSSL_VERSION
+        cd $INSTALL_PATH/openssl-$OPENSSL_VERSION
         ./Configure linux-aarch64 -march=armv8-a+crypto -mcpu=cortex-a57+crypto -fPIC no-shared --prefix=$INSTALL_PATH --cross-compile-prefix=aarch64-linux-gnu-
         make -s -j $MAKEJ
         make install_sw
-        cd ../apache-arrow-$ARROW_VERSION/cpp
+        cd $INSTALL_PATH/apache-arrow-$ARROW_VERSION/cpp
         "$CMAKE" -DCMAKE_C_FLAGS="-mabi=lp64" -DCMAKE_CXX_FLAGS="-std=c++11 -mabi=lp64" -DLLVM_ROOT="$INSTALL_PATH" -DOPENSSL_ROOT_DIR="$INSTALL_PATH" $COMPONENTS -DARROW_RPATH_ORIGIN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_INSTALL_LIBDIR="lib" -DARROW_BUILD_UTILITIES=OFF -DPython3_EXECUTABLE="$PYTHON_BIN_PATH" .
         make -j $MAKEJ
         make install/strip
@@ -112,11 +119,11 @@ case $PLATFORM in
         "$CMAKE" -DLLVM_CCACHE_BUILD=ON -DCMAKE_CROSSCOMPILING=True -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DLLVM_TABLEGEN="$TBLGEN/bin/llvm-tblgen" -DCLANG_TABLEGEN="$TBLGEN/bin/clang-tblgen" -DCMAKE_BUILD_TYPE=Release -DLLVM_HOST_TRIPLE=powerpc64le-unknown-linux-gnu -DLLVM_DEFAULT_TARGET_TRIPLE=powerpc64le-unknown-linux-gnu -DLLVM_TARGET_ARCH=PowerPC -DLLVM_TARGETS_TO_BUILD=PowerPC -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$PYTHON_BIN_PATH" ..
         make -j $MAKEJ
         make install
-        cd ../../openssl-$OPENSSL_VERSION
+        cd $INSTALL_PATH/openssl-$OPENSSL_VERSION
         ./Configure linux-ppc64le -fPIC no-shared --prefix=$INSTALL_PATH --cross-compile-prefix=powerpc64le-linux-gnu-
         make -s -j $MAKEJ
         make install_sw
-        cd ../apache-arrow-$ARROW_VERSION/cpp
+        cd $INSTALL_PATH/apache-arrow-$ARROW_VERSION/cpp
         "$CMAKE" -DCMAKE_C_FLAGS="-m64" -DCMAKE_CXX_FLAGS="-std=c++11 -m64" -DLLVM_ROOT="$INSTALL_PATH" -DOPENSSL_ROOT_DIR="$INSTALL_PATH" $COMPONENTS -DARROW_RPATH_ORIGIN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_INSTALL_LIBDIR="lib" -DARROW_BUILD_UTILITIES=OFF -DPython3_EXECUTABLE="$PYTHON_BIN_PATH" .
         make -j $MAKEJ
         make install/strip
@@ -127,11 +134,11 @@ case $PLATFORM in
         "$CMAKE" -DLLVM_CCACHE_BUILD=ON -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$PYTHON_BIN_PATH" ..
         make -j $MAKEJ
         make install
-        cd ../../openssl-$OPENSSL_VERSION
+        cd $INSTALL_PATH/openssl-$OPENSSL_VERSION
         ./Configure linux-elf -m32 -fPIC no-shared --prefix=$INSTALL_PATH
         make -s -j $MAKEJ
         make install_sw
-        cd ../apache-arrow-$ARROW_VERSION/cpp
+        cd $INSTALL_PATH/apache-arrow-$ARROW_VERSION/cpp
         "$CMAKE" -DCMAKE_C_FLAGS="-m32" -DCMAKE_CXX_FLAGS="-std=c++11 -m32" -DLLVM_ROOT="$INSTALL_PATH" -DOPENSSL_ROOT_DIR="$INSTALL_PATH" $COMPONENTS -DARROW_RPATH_ORIGIN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_INSTALL_LIBDIR="lib" -DARROW_BUILD_UTILITIES=OFF -DPython3_EXECUTABLE="$PYTHON_BIN_PATH" .
         make -j $MAKEJ
         make install/strip
@@ -142,11 +149,11 @@ case $PLATFORM in
         "$CMAKE" -DLLVM_CCACHE_BUILD=ON -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$PYTHON_BIN_PATH" ..
         make -j $MAKEJ
         make install
-        cd ../../openssl-$OPENSSL_VERSION
+        cd $INSTALL_PATH/openssl-$OPENSSL_VERSION
         ./Configure linux-x86_64 -fPIC no-shared --prefix=$INSTALL_PATH
         make -s -j $MAKEJ
         make install_sw
-        cd ../apache-arrow-$ARROW_VERSION/cpp
+        cd $INSTALL_PATH/apache-arrow-$ARROW_VERSION/cpp
         "$CMAKE" -DCMAKE_C_FLAGS="-m64" -DCMAKE_CXX_FLAGS="-std=c++11 -m64" -DLLVM_ROOT="$INSTALL_PATH" -DOPENSSL_ROOT_DIR="$INSTALL_PATH" $COMPONENTS -DARROW_RPATH_ORIGIN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_INSTALL_LIBDIR="lib" -DARROW_BUILD_UTILITIES=OFF -DPython3_EXECUTABLE="$PYTHON_BIN_PATH" .
         make -j $MAKEJ
         make install/strip
@@ -157,11 +164,11 @@ case $PLATFORM in
         "$CMAKE" -DLLVM_CCACHE_BUILD=ON -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$PYTHON_BIN_PATH" ..
         make -j $MAKEJ
         make install
-        cd ../../openssl-$OPENSSL_VERSION
+        cd $INSTALL_PATH/openssl-$OPENSSL_VERSION
         ./Configure darwin64-x86_64-cc -fPIC no-shared --prefix=$INSTALL_PATH
         make -s -j $MAKEJ
         make install_sw
-        cd ../apache-arrow-$ARROW_VERSION/cpp
+        cd $INSTALL_PATH/apache-arrow-$ARROW_VERSION/cpp
         sedinplace 's/"cxxflags=-fPIC"/"toolset=clang" "cxxflags=-fPIC"/g' cmake_modules/ThirdpartyToolchain.cmake
         "$CMAKE" -DCLANG_EXECUTABLE="/usr/bin/clang" -DLLVM_ROOT="$INSTALL_PATH" -DOPENSSL_ROOT_DIR="$INSTALL_PATH" $COMPONENTS -DARROW_RPATH_ORIGIN=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$INSTALL_PATH" -DCMAKE_INSTALL_LIBDIR="lib" -DARROW_BUILD_UTILITIES=OFF -DPython3_EXECUTABLE="$PYTHON_BIN_PATH" .
         make -j $MAKEJ
