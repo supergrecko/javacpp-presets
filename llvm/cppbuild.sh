@@ -24,7 +24,7 @@ cd build
 
 PROJECTS="clang;lld;polly"
 
-TBLGEN_BUILD="${BUILD_DIR:-$(pwd)/../tblgen}"
+TBLGEN_BUILD="${BUILD_DIR:-$(pwd)}/../tblgen"
 LLVM_BUILD="${BUILD_DIR:-$(pwd)}"
 
 case $PLATFORM in
