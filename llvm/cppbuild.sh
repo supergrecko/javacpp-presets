@@ -7,6 +7,9 @@ if [[ -z "$PLATFORM" ]]; then
     exit
 fi
 
+set -v
+set -x
+
 LLVM_VERSION=12.0.0
 download https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/llvm-project-$LLVM_VERSION.src.tar.xz llvm-project-$LLVM_VERSION.src.tar.xz
 
@@ -122,6 +125,9 @@ case $PLATFORM in
         $CMAKE -G "Ninja" -S ../llvm -B $LLVM_BUILD -DLLVM_USE_CRT_RELEASE=MD -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH -DLLVM_BUILD_LLVM_C_DYLIB=OFF -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_LINK_LLVM_DYLIB=ON -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=all -DLLVM_ENABLE_DIA_SDK=OFF -DLLVM_ENABLE_LIBXML2=OFF -DLLVM_INCLUDE_TESTS=OFF -DPYTHON_EXECUTABLE="$(where python.exe | head -1)" -DLLVM_POLLY_LINK_INTO_TOOLS=ON -DLLVM_ENABLE_PROJECTS="$PROJECTS"
         ninja -C $LLVM_BUILD -j $MAKEJ
         ninja -C $LLVM_BUILD install
+        ls $(cygpath -w $INSTALL_PATH)
+        echo $(pwd)
+        echo $INSTALL_PATH
         pushd $(cygpath -w $INSTALL_PATH/lib/)
         [ -f LLVM.lib ] || lib.exe /OUT:LLVM.lib LLVM*.lib Polly*.lib
         [ -f clang.lib ] || lib.exe /OUT:clang.lib clang*.lib
