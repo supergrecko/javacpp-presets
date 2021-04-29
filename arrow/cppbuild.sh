@@ -27,6 +27,18 @@ cd $PLATFORM
 INSTALL_PATH=`pwd`
 
 LLVM_PATH="$INSTALL_PATH/../../../llvm/cppbuild/$PLATFORM/"
+
+if [[ -n "${BUILD_PATH:-}" ]]; then
+    PREVIFS="$IFS"
+    IFS="$BUILD_PATH_SEPARATOR"
+    for P in $BUILD_PATH; do
+        if [[ -f "$P/include/llvm-c/Core.h" ]]; then
+            LLVM_PATH="$P"
+        fi
+    done
+    IFS="$PREVIFS"
+fi
+
 LLVM_PATH="${LLVM_PATH//\\//}"
 
 echo "Decompressing archives... (ignore any symlink errors)"
