@@ -132,7 +132,6 @@ public class OrcJit {
 
         // Stage 5: Dispose of the allocated resources
         LLVMOrcDisposeLLJIT(jit);
-        LLVMOrcDisposeThreadSafeModule(threadModule);
-        LLVMOrcDisposeThreadSafeContext(threadContext);
+        LLVMShutdown();
     }
 }
