@@ -41,6 +41,11 @@ jobs:
     container: centos:6
     steps:
       - uses: bytedeco/javacpp-presets/.github/actions/deploy-centos@actions
+      - run: |
+          mvn exec:java -Pemit-bitcode
+          mvn exec:java -Pevaluate-bitcode
+          mvn exec:java -Porcjit
+        working-directory: /__w/javacpp-presets/javacpp-presets/llvm/
   macosx-x86_64:
     runs-on: macos-10.15
     steps:
