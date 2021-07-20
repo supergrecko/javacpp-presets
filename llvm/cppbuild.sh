@@ -6,6 +6,7 @@ if [[ -z "$PLATFORM" ]]; then
     popd
     exit
 fi
+#foo
 
 LLVM_VERSION=12.0.1
 download https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/llvm-project-$LLVM_VERSION.src.tar.xz llvm-project-$LLVM_VERSION.src.tar.xz
