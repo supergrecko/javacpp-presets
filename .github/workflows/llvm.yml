@@ -41,11 +41,12 @@ jobs:
     container: centos:6
     steps:
       - uses: bytedeco/javacpp-presets/.github/actions/deploy-centos@actions
-      - run: |
+      - name: Run samples
+        run: |
           mvn exec:java -Pemit-bitcode
           mvn exec:java -Pevaluate-bitcode
           mvn exec:java -Porcjit
-        working-directory: /__w/javacpp-presets/javacpp-presets/llvm/
+        working-directory: /__w/javacpp-presets/javacpp-presets/llvm/samples/llvm
   macosx-x86_64:
     runs-on: macos-10.15
     steps:
@@ -67,17 +68,3 @@ jobs:
     runs-on: ubuntu-16.04
     steps:
       - uses: bytedeco/javacpp-presets/.github/actions/redeploy@actions
-  samples:
-    needs: redeploy
-    strategy:
-      matrix:
-        os: [ubuntu-16.04, macos-10.15, windows-2019]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v2
-      - run: |
-          mvn -B -U -e clean compile exec:java -Pfactorial
-          mvn exec:java -Pemit-bitcode
-          mvn exec:java -Pevaluate-bitcode
-          mvn exec:java -Porcjit
-        working-directory: llvm/samples/llvm
